@@ -1,55 +1,63 @@
+import { useDocuments } from '@/provider/DocumentProvider';
+import { useGlobal } from '@/provider/GlobalStateProvider';
 import React from 'react';
-import { SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { Document } from '../_layout';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export type SidebarProps = {
-    selectedDocument: Document | null;
-    setSelectedDocument: (doc: Document | null) => void;
-    setSidebarOpen: (open: boolean) => void;
-}
-
-export default function Sidebar(props: SidebarProps) {
-
-    const documents = [
-        {
-            id: 1,
-            title: "Document 1",
-            url: "https://devsforge.de/temp/demo.jpeg"
-        },
-        {
-            id: 2,
-            title: "Document 2",
-            url: "https://devsforge.de/temp/demo.jpeg"
-        },
-        {
-            id: 3,
-            title: "Document 3",
-            url: "https://devsforge.de/temp/demo.jpeg"
-        }
-    ]
+export default function Sidebar() {
+  const { documents, selectedDocument, setSelectedDocument } = useDocuments();
+  const { setSidebarOpen } = useGlobal();
 
   return (
-    <SafeAreaView 
-        style={{ flex: 1 }}
-    >
+    <SafeAreaView style={styles.safeArea}>
         <ScrollView 
-            contentContainerStyle={{ padding: 16 }}
+            contentContainerStyle={styles.scrollContent}
             stickyHeaderIndices={[0]}
             showsVerticalScrollIndicator={false}
         >
-            <View style={{backgroundColor: '#151515'}}>
-                <Text style={{ fontSize: 26, fontWeight: 'bold', marginBottom: 16, color: "white" }}>Select Document:</Text>
+            <View style={styles.header}>
+                <Text style={styles.headerText}>Select Document:</Text>
             </View>
 
             {documents.map((doc, index) => (
                 <TouchableOpacity key={index} onPress={() => {
-                    props.setSelectedDocument(doc);
-                    props.setSidebarOpen(false);
+                    setSelectedDocument(doc);
+                    setSidebarOpen(false);
                 }}>
-                    <Text style={{ fontSize: 20, color: (props.selectedDocument?.id === doc.id) ? 'orange' : 'white', marginBottom: 8 }}>- {doc.title}</Text>
+                    <Text style={[
+                        styles.documentText,
+                        selectedDocument?.id === doc.id && styles.selectedDocumentText
+                    ]}>
+                        - {doc.title}
+                    </Text>
                 </TouchableOpacity>
             ))}
         </ScrollView>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 16,
+  },
+  header: {
+    backgroundColor: '#151515',
+  },
+  headerText: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: 'white',
+  },
+  documentText: {
+    fontSize: 20,
+    color: 'white',
+    marginBottom: 8,
+  },
+  selectedDocumentText: {
+    color: 'orange',
+  },
+});

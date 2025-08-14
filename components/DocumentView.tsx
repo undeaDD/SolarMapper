@@ -1,5 +1,8 @@
+import { useDocuments } from "@/provider/DocumentProvider";
+import { Ellipse, useEllipses } from "@/provider/EllipseProvider";
+import { useTools } from "@/provider/ToolProvider";
 import React, { useState } from "react";
-import { Image, StyleSheet, ViewStyle } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 import {
   Gesture,
   GestureDetector,
@@ -19,24 +22,11 @@ const MAX_X = 200;
 const MIN_Y = -200;
 const MAX_Y = 200;
 
-export type Ellipse = {
-  x: number;
-  y: number;
-  startX: number;
-  startY: number;
-  toolType: number;
-};
+export default function DocumentView() {
+  const { ellipses, setEllipses, showEllipses } = useEllipses();
+  const { selectedDocument } = useDocuments();
+  const { selectedTool } = useTools();
 
-export default function DocumentView({
-  uri,
-  selectedTool,
-  showEllipses,
-}: {
-  uri: string;
-  selectedTool: number | null;
-  showEllipses: boolean;
-  style: ViewStyle;
-}) {
   const newScale = useSharedValue(1);
   const prevScale = useSharedValue(1);
 
@@ -46,14 +36,15 @@ export default function DocumentView({
   const prevOffsetY = useSharedValue(0);
 
   const currentEllipse = useSharedValue<Ellipse | null>(null);
-
-  const [ellipses, setEllipses] = useState<Ellipse[]>([]);
   const [currentEllipseJS, setCurrentEllipseJS] = useState<Ellipse | null>(
     null
   );
 
   const addEllipse = (ellipse: Ellipse) => {
-    setEllipses((prev) => [...prev, { ...ellipse, toolType: selectedTool ?? 0 }]);
+    setEllipses((prev: Ellipse[]) => [
+      ...prev,
+      { ...ellipse, toolType: selectedTool?.id ?? null },
+    ]);
     setCurrentEllipseJS(null);
     currentEllipse.value = null;
   };
@@ -138,7 +129,7 @@ export default function DocumentView({
           y: e.y,
           startX: e.x,
           startY: e.y,
-          toolType: selectedTool,
+          toolType: selectedTool?.id ?? 0,
         };
         runOnJS(setCurrentEllipseJS)(currentEllipse.value);
       }
@@ -155,7 +146,13 @@ export default function DocumentView({
         const endX = e.x;
         const endY = e.y;
 
-        currentEllipse.value = { x: endX, y: endY, startX, startY, toolType: currentEllipse.value.toolType };
+        currentEllipse.value = {
+          x: endX,
+          y: endY,
+          startX,
+          startY,
+          toolType: currentEllipse.value.toolType,
+        };
         runOnJS(setCurrentEllipseJS)({ ...currentEllipse.value });
         return;
       }
@@ -210,22 +207,28 @@ export default function DocumentView({
   }));
 
   return (
-    <GestureDetector gesture={gesture}>
-      <Animated.View style={animatedStyle}>
-        <Image
-          source={{ uri }}
-          style={styles.image}
-          resizeMode="contain"
-        />
-        {showEllipses && <EllipsisViews />}
-      </Animated.View>
-    </GestureDetector>
+    <View style={styles.container}>
+      <GestureDetector gesture={gesture}>
+        <Animated.View style={animatedStyle}>
+          <Image
+            source={{ uri: selectedDocument?.url, width: 794, height: 1123 }}
+            style={styles.image}
+            resizeMode="contain"
+          />
+          {showEllipses && <EllipsisViews />}
+        </Animated.View>
+      </GestureDetector>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000" },
-  image: { width: "100%", height: "100%" },
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  image: { flex: 1 },
 });
 
 /*

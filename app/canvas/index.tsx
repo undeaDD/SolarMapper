@@ -1,6 +1,10 @@
 import DocumentView from "@/components/DocumentView";
+import { useDocuments } from "@/provider/DocumentProvider";
+import { useEllipses } from "@/provider/EllipseProvider";
+import { useGlobal } from "@/provider/GlobalStateProvider";
+import { useTools } from "@/provider/ToolProvider";
 import { BlurView } from "expo-blur";
-import React, { useState } from "react";
+import React from "react";
 import {
   Image,
   SafeAreaView,
@@ -10,25 +14,12 @@ import {
   View,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { Document } from "../_layout";
 
-export type CanvasScreenProps = {
-  selectedDocument: Document | null;
-};
-
-export default function CanvasScreen({
-  selectedDocument,
-}: CanvasScreenProps) {
-  const [selectedTool, setSelectedTool] = useState<number | null>(0);
-  const [showEllipses, setShowEllipses] = useState<boolean>(true);
-
-  const tools = [
-    { id: 0, label: "Planeten", icon: require("./../../assets/planet.png") },
-    { id: 1, label: "Monde", icon: require("./../../assets/moon.png") },
-    { id: 2, label: "Bahnen", icon: require("./../../assets/ring.png") },
-    { id: 3, label: "Objekte", icon: require("./../../assets/rocket.png") },
-    { id: 4, label: "Unbekannt", icon: require("./../../assets/unknown.png") },
-  ];
+export default function CanvasScreen() {
+  const { selectedDocument, setSelectedDocument } = useDocuments();
+  const { tools, selectedTool, setSelectedTool } = useTools();
+  const { showEllipses, toggleEllipses } = useEllipses();
+  const { setSidebarOpen } = useGlobal();
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -38,16 +29,7 @@ export default function CanvasScreen({
 
           {/* Main canvas view */}
           <GestureHandlerRootView>
-            <DocumentView
-              style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-              uri={selectedDocument.url}
-              selectedTool={selectedTool}
-              showEllipses={showEllipses}
-            />
+            <DocumentView />
           </GestureHandlerRootView>
 
           {/* Bottom left tool panel */}
@@ -60,21 +42,20 @@ export default function CanvasScreen({
                     key={id}
                     style={styles.button}
                     onPress={() =>
-                      setSelectedTool(selectedTool === id ? null : id)
+                      setSelectedTool(selectedTool?.id === id ? null : { id, label, icon })
                     }
                   >
                     <Image
                       source={icon}
-                      style={{
-                        width: 35,
-                        height: 35,
-                        tintColor: selectedTool === id ? "orange" : "white",
-                      }}
+                      style={[
+                        styles.toolIcon,
+                        selectedTool?.id === id && styles.toolIconSelected,
+                      ]}
                     />
                     <Text
                       style={[
-                        { color: selectedTool === id ? "orange" : "white" },
                         styles.buttonTitle,
+                        selectedTool?.id === id && styles.buttonTitleSelected,
                       ]}
                     >
                       {label}
@@ -89,23 +70,26 @@ export default function CanvasScreen({
           <View style={styles.actionButtonWrapper}>
             <BlurView style={styles.actionButton} intensity={90}>
               <TouchableOpacity onPress={() => {
-                setShowEllipses(!showEllipses);
+                toggleEllipses();
               }}>
                 <Image
                   source={showEllipses ? require("./../../assets/hide.png") : require("./../../assets/show.png")}
-                  style={{ width: 30, height: 30, tintColor: "orange" }}
+                  style={[styles.actionIcon]}
                 />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => {}}>
                 <Image
                   source={require("./../../assets/info.png")}
-                  style={{ width: 30, height: 30, tintColor: "orange" }}
+                  style={[styles.actionIcon]}
                 />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => {}}>
+              <TouchableOpacity onPress={() => {
+                setSelectedDocument(null);
+                setSidebarOpen(true)
+              }}>
                 <Image
                   source={require("./../../assets/save.png")}
-                  style={{ width: 30, height: 30, tintColor: "orange" }}
+                  style={[styles.actionIcon]}
                 />
               </TouchableOpacity>
             </BlurView>
@@ -151,12 +135,24 @@ const styles = StyleSheet.create({
     fontSize: 10,
     textAlign: "center",
     marginBottom: 5,
+    color: "white",
+  },
+  buttonTitleSelected: {
+    color: "orange",
   },
   button: {
     justifyContent: "center",
     alignItems: "center",
     width: 50,
     height: 55,
+  },
+  toolIcon: {
+    width: 35,
+    height: 35,
+    tintColor: "white",
+  },
+  toolIconSelected: {
+    tintColor: "orange",
   },
   actionButtonWrapper: {
     position: "absolute",
@@ -170,5 +166,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 20,
     padding: 10,
+  },
+  actionIcon: {
+    width: 30,
+    height: 30,
+    tintColor: "orange",
   },
 });
