@@ -8,21 +8,15 @@
     "scheme": "solarmapper",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
+    "platforms": ["ios"],
     "ios": {
       "supportsTablet": true,
-      "requireFullScreen": true
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "edgeToEdgeEnabled": true
-    },
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "requireFullScreen": true,
+      "icon": {
+        "dark": "./assets/images/dark.png",
+        "light": "./assets/images/icon.png",
+        "tinted": "./assets/images/icon.png"
+      }
     },
     "plugins": [
       ["expo-router", {}],
@@ -35,10 +29,10 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
+          "image": "./assets/images/dark.png",
+          "imageWidth": 150,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#000000"
         }
       ]
     ],
