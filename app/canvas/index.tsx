@@ -68,7 +68,7 @@ export default function CanvasScreen({ toggleSideBar, selectedDocument }: Canvas
                     source={require("./../../assets/planet.png")}
                     style={{ width: 35, height: 35, tintColor: selectedTool === 0 ? "orange" : "white" }}
                   />
-                  <Text style={[{color: selectedTool === 0 ? "orange" : "white"}, styles.buttonTitle]}>Planet</Text>
+                  <Text style={[{color: selectedTool === 0 ? "orange" : "white"}, styles.buttonTitle]}>Planeten</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                   style={styles.button}
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     width: 50,
-    height: 55
+    height: 55,
   },
    actionButtonWrapper: {
     position: "absolute",
