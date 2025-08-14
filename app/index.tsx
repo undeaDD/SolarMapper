@@ -1,27 +1,59 @@
 import { useGlobal } from "@/provider/GlobalStateProvider";
 import { BlurView } from "expo-blur";
-import React from "react";
-import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { Animated, Image, StyleSheet, TouchableOpacity, View } from "react-native";
 import Canvas from "./canvas";
 import Sidebar from "./sidebar";
 
 export default function RootView() {
   const { sidebarOpen, toggleSidebar } = useGlobal();
 
+  const sidebarAnim = useRef(new Animated.Value(sidebarOpen ? 0 : -250)).current;
+  const overlayAnim = useRef(new Animated.Value(sidebarOpen ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.timing(sidebarAnim, {
+      toValue: sidebarOpen ? 0 : -250,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+    Animated.timing(overlayAnim, {
+      toValue: sidebarOpen ? 1 : 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [overlayAnim, sidebarAnim, sidebarOpen]);
+
   return (
     <View style={styles.container}>
-      
       {/* Sidebar view */}
-      {sidebarOpen && (
-        <View style={styles.sidebar}>
-          <Sidebar />
-        </View>
-      )}
+      <Animated.View
+        style={[
+          styles.sidebar,
+          {
+            transform: [{ translateX: sidebarAnim }],
+            opacity: overlayAnim,
+          },
+        ]}
+        pointerEvents={sidebarOpen ? "auto" : "none"}
+      >
+        <Sidebar />
+      </Animated.View>
 
       {/* Canvas view */}
       <View style={styles.canvasWrapper}>
         <Canvas />
-        {sidebarOpen && <View style={styles.overlay} />}
+        <Animated.View
+          style={[
+            styles.overlay,
+            { opacity: overlayAnim },
+          ]}
+          pointerEvents={sidebarOpen ? "auto" : "none"}
+        >
+          {sidebarOpen && (
+            <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={toggleSidebar} />
+          )}
+        </Animated.View>
       </View>
 
       {/* Top left sidebar button */}
@@ -48,7 +80,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     left: 0,
-    zIndex: 10,
+    zIndex: 30,
     width: 250,
     backgroundColor: "#151515",
     borderTopEndRadius: 20,
