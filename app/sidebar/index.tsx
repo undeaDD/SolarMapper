@@ -5,6 +5,7 @@ import { Document } from '../_layout';
 export type SidebarProps = {
     selectedDocument: Document | null;
     setSelectedDocument: (doc: Document | null) => void;
+    setSidebarOpen: (open: boolean) => void;
 }
 
 export default function Sidebar(props: SidebarProps) {
@@ -43,6 +44,7 @@ export default function Sidebar(props: SidebarProps) {
             {documents.map((doc, index) => (
                 <TouchableOpacity key={index} onPress={() => {
                     props.setSelectedDocument(doc);
+                    props.setSidebarOpen(false);
                 }}>
                     <Text style={{ fontSize: 20, color: (props.selectedDocument?.id === doc.id) ? 'orange' : 'white', marginBottom: 8 }}>- {doc.title}</Text>
                 </TouchableOpacity>

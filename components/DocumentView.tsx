@@ -24,14 +24,17 @@ export type Ellipse = {
   y: number;
   startX: number;
   startY: number;
+  toolType: number;
 };
 
 export default function DocumentView({
   uri,
   selectedTool,
+  showEllipses,
 }: {
   uri: string;
   selectedTool: number | null;
+  showEllipses: boolean;
   style: ViewStyle;
 }) {
   const newScale = useSharedValue(1);
@@ -50,76 +53,79 @@ export default function DocumentView({
   );
 
   const addEllipse = (ellipse: Ellipse) => {
-    setEllipses((prev) => [...prev, ellipse]);
+    setEllipses((prev) => [...prev, { ...ellipse, toolType: selectedTool ?? 0 }]);
     setCurrentEllipseJS(null);
     currentEllipse.value = null;
   };
 
-  const EllipsisViews = () => {
-    let current;
-    if (currentEllipseJS) {
-      const rx = Math.abs(currentEllipseJS.x - currentEllipseJS.startX) / 2;
-      const ry = Math.abs(currentEllipseJS.y - currentEllipseJS.startY) / 2;
-      const cx = (currentEllipseJS.x + currentEllipseJS.startX) / 2;
-      const cy = (currentEllipseJS.y + currentEllipseJS.startY) / 2;
+  const renderEllipse = (ellipse: Ellipse) => {
+    const rx = Math.abs(ellipse.x - ellipse.startX) / 2;
+    const ry = Math.abs(ellipse.y - ellipse.startY) / 2;
+    const cx = (ellipse.x + ellipse.startX) / 2;
+    const cy = (ellipse.y + ellipse.startY) / 2;
 
-      current = (
-        <Svg
-          style={{
-            position: "absolute",
-            left: cx - rx,
-            top: cy - ry,
-            zIndex: 20,
-          }}
-          width={rx * 2 + 6}
-          height={ry * 2 + 6}
-        >
-          <E
-            cx={rx + 3}
-            cy={ry + 3}
-            rx={rx}
-            ry={ry}
-            stroke="orange"
-            strokeWidth={4}
-            fill="transparent"
-          />
-        </Svg>
-      );
+    let stroke = "orange";
+    let strokeDasharray: string | undefined = undefined;
+    let fill = "transparent";
+
+    switch (ellipse.toolType) {
+      case 0:
+        stroke = "orange";
+        fill = "rgba(255,165,0,0.2)";
+        break;
+      case 1:
+        stroke = "none";
+        fill = "rgba(255,165,0,0.2)";
+        break;
+      case 2:
+        stroke = "orange";
+        strokeDasharray = "5,5";
+        fill = "transparent";
+        break;
+      case 3:
+        stroke = "gray";
+        fill = "rgba(128,128,128,0.2)";
+        break;
+      case 4:
+        stroke = "red";
+        fill = "rgba(255,0,0,0.2)";
+        break;
+      default:
+        stroke = "orange";
+        fill = "transparent";
     }
 
     return (
-      <>
-        {ellipses.map((e, i) => {
-          const rx = Math.abs(e.x - e.startX) / 2;
-          const ry = Math.abs(e.y - e.startY) / 2;
-          const cx = (e.x + e.startX) / 2;
-          const cy = (e.y + e.startY) / 2;
+      <Svg
+        key={`${cx}-${cy}-${rx}-${ry}-${ellipse.toolType}`}
+        style={{
+          position: "absolute",
+          left: cx - rx,
+          top: cy - ry,
+          zIndex: 20,
+        }}
+        width={rx * 2 + 6}
+        height={ry * 2 + 6}
+      >
+        <E
+          cx={rx + 3}
+          cy={ry + 3}
+          rx={rx}
+          ry={ry}
+          stroke={stroke}
+          strokeWidth={stroke === "none" ? 0 : 4}
+          strokeDasharray={strokeDasharray}
+          fill={fill}
+        />
+      </Svg>
+    );
+  };
 
-          return (
-            <Svg
-              key={i}
-              style={{
-                position: "absolute",
-                left: cx - rx,
-                top: cy - ry,
-                zIndex: 20,
-              }}
-              width={rx * 2 + 6}
-              height={ry * 2 + 6}
-            >
-              <E
-                cx={rx + 3}
-                cy={ry + 3}
-                rx={rx}
-                ry={ry}
-                stroke="orange"
-                strokeWidth={4}
-                fill="transparent"
-              />
-            </Svg>
-          );
-        })}
-        {current}
+  const EllipsisViews = () => {
+    return (
+      <>
+        {ellipses.map((e, i) => renderEllipse(e))}
+        {currentEllipseJS && renderEllipse(currentEllipseJS)}
       </>
     );
   };
@@ -127,12 +133,12 @@ export default function DocumentView({
   const pan = Gesture.Pan()
     .onBegin((e) => {
       if (e.pointerType === PointerType.STYLUS && selectedTool !== null) {
-        // TODO: add global pan and pinch to ellipses ( PART 2 )
         currentEllipse.value = {
           x: e.x,
           y: e.y,
           startX: e.x,
           startY: e.y,
+          toolType: selectedTool,
         };
         runOnJS(setCurrentEllipseJS)(currentEllipse.value);
       }
@@ -146,11 +152,10 @@ export default function DocumentView({
         const startX = currentEllipse.value.startX;
         const startY = currentEllipse.value.startY;
 
-        // TODO: add global pan and pinch to ellipses ( PART 3 )
         const endX = e.x;
         const endY = e.y;
 
-        currentEllipse.value = { x: endX, y: endY, startX, startY };
+        currentEllipse.value = { x: endX, y: endY, startX, startY, toolType: currentEllipse.value.toolType };
         runOnJS(setCurrentEllipseJS)({ ...currentEllipse.value });
         return;
       }
@@ -212,7 +217,7 @@ export default function DocumentView({
           style={styles.image}
           resizeMode="contain"
         />
-        {EllipsisViews()}
+        {showEllipses && <EllipsisViews />}
       </Animated.View>
     </GestureDetector>
   );
@@ -222,3 +227,18 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#000" },
   image: { width: "100%", height: "100%" },
 });
+
+/*
+Current functionality: newly drawn ellipse with pen gets stored in currentEllipse shared value. After pen lift / pan onEnd the currentEllipse gets stored inside the ellipses state array.
+
+I need a step in-between. 
+
+After I one the initial pan gesture . I want to store the ellipses in a floating state. And only store it in the state array after a button press.
+
+- The floating ellipse should have a dashed rectangular border.
+- the floating ellipse can be dragged inside the border to move it somewhere else 
+- the floating ellipse can be dragged on the edges to scale it in that direction ( manipulate the ellipse edge points )
+- the floating ellipse should have at least two buttons attached ( maybe inside centered ) -> discard and save button 
+  - the discard button button removes it completely, the save button saves the floating ellipse in the state array
+- the scale and drag actions should only be possible via stylus ( there are examples in the code already )
+*/
