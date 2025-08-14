@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StyleSheet, View, ViewStyle } from "react-native";
+import { Image, StyleSheet, ViewStyle } from "react-native";
 import {
   Gesture,
   GestureDetector,
@@ -71,12 +71,12 @@ export default function DocumentView({
             top: cy - ry,
             zIndex: 20,
           }}
-          width={rx * 2 + 4}
-          height={ry * 2 + 4}
+          width={rx * 2 + 6}
+          height={ry * 2 + 6}
         >
           <E
-            cx={rx + 2}
-            cy={ry + 2}
+            cx={rx + 3}
+            cy={ry + 3}
             rx={rx}
             ry={ry}
             stroke="orange"
@@ -90,7 +90,6 @@ export default function DocumentView({
     return (
       <>
         {ellipses.map((e, i) => {
-          // TODO: add global pan and pinch to ellipses ( PART: 1 )
           const rx = Math.abs(e.x - e.startX) / 2;
           const ry = Math.abs(e.y - e.startY) / 2;
           const cx = (e.x + e.startX) / 2;
@@ -105,12 +104,12 @@ export default function DocumentView({
                 top: cy - ry,
                 zIndex: 20,
               }}
-              width={rx * 2 + 4}
-              height={ry * 2 + 4}
+              width={rx * 2 + 6}
+              height={ry * 2 + 6}
             >
               <E
-                cx={rx + 2}
-                cy={ry + 2}
+                cx={rx + 3}
+                cy={ry + 3}
                 rx={rx}
                 ry={ry}
                 stroke="orange"
@@ -207,14 +206,14 @@ export default function DocumentView({
 
   return (
     <GestureDetector gesture={gesture}>
-      <View style={styles.container}>
-        <Animated.Image
+      <Animated.View style={animatedStyle}>
+        <Image
           source={{ uri }}
-          style={[styles.image, animatedStyle]}
+          style={styles.image}
           resizeMode="contain"
         />
         {EllipsisViews()}
-      </View>
+      </Animated.View>
     </GestureDetector>
   );
 }
