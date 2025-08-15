@@ -17,7 +17,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function CanvasScreen() {
   const { selectedDocument, setSelectedDocument } = useDocuments();
-  const { addons, tools, selectedTool, setSelectedTool, selectedAddon, setSelectedAddon } = useTools();
+  const { tools, selectedTool, setSelectedTool, selectedSubTool, setSelectedSubTool } = useTools();
   const { showEllipses, toggleEllipses } = useEllipses();
   const { setSidebarOpen } = useGlobal();
 
@@ -37,13 +37,14 @@ export default function CanvasScreen() {
             <BlurView style={styles.buttonPanel} intensity={90}>
               <Text style={styles.buttonPanelTitle}>ApplePencil Tools:</Text>
               <View style={styles.buttonPanelRow}>
-                {tools.map(({ id, label, icon }) => (
+                {tools.map(({ id, label, icon, subTools }) => (
                   <TouchableOpacity
                     key={id}
                     style={styles.button}
-                    onPress={() =>
-                      setSelectedTool(selectedTool?.id === id ? null : { id, label, icon })
-                    }
+                    onPress={() => {
+                      setSelectedTool(selectedTool?.id === id ? null : { id, label, icon, subTools })
+                      setSelectedSubTool(selectedTool?.id === id ? null : subTools[0])
+                    }}
                   >
                     <Image
                       source={icon}
@@ -66,38 +67,38 @@ export default function CanvasScreen() {
             </BlurView>
           </View>
 
-          {/* Bottom Left Tool Panel Addon */}
-          <View style={styles.addonPanelWrapper}>
-            <BlurView style={styles.addonPanel} intensity={90}>
-              <View style={styles.addonPanelColumn}>
-                {addons.map(({ id, label, icon }) => (
+          {/* Bottom Left Tool Panel subtool */}
+          {selectedTool && (
+            <View style={styles.subtoolPanelWrapper}>
+              <BlurView style={styles.subtoolPanel} intensity={90}>
+                {selectedTool?.subTools.map(({ id, label, icon }) => (
                   <TouchableOpacity
                     key={id}
-                    style={styles.addonButton}
+                    style={styles.subtoolButton}
                     onPress={() => {
-                      setSelectedAddon({ id, label, icon });
+                      setSelectedSubTool({ id, label, icon });
                     }}
                   >
                     <Image
                       source={icon}
                       style={[
-                        styles.addonToolIcon,
-                        selectedAddon?.id === id && styles.addonToolIconSelected,
+                        styles.subtoolToolIcon,
+                        selectedSubTool?.id === id && styles.subtoolToolIconSelected,
                       ]}
                     />
                     <Text
                       style={[
-                        styles.addonButtonTitle,
-                        selectedAddon?.id === id && styles.addonButtonTitleSelected,
+                        styles.subtoolButtonTitle,
+                        selectedSubTool?.id === id && styles.subtoolButtonTitleSelected,
                       ]}
                     >
                       {label}
                     </Text>
                   </TouchableOpacity>
                 ))}
-              </View>
-            </BlurView>
-          </View>
+              </BlurView>
+            </View>
+          )}
 
           {/* Top right action group */}
           <View style={styles.actionButtonWrapper}>
@@ -205,40 +206,38 @@ const styles = StyleSheet.create({
     height: 30,
     tintColor: "orange",
   },
-  addonPanelWrapper: {
+  subtoolPanelWrapper: {
     position: "absolute",
-    bottom: 15,
     left: 15,
     zIndex: 10,
+    bottom: 120,
     overflow: "hidden",
     borderRadius: 15,
   },
-  addonPanel: {
+  subtoolPanel: {
     paddingHorizontal: 10,
+    flexDirection: "column",
   },
-  addonPanelRow: {
+  subtoolButton: {
     flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
     gap: 10,
+    height: 50,
   },
-  addonPanelTitle: {
-    
+  subtoolToolIcon: {
+    height: 30,
+    width: 30,
+    resizeMode: "contain",
+    tintColor: "white",
   },
-  addonPanelColumn: {
-  
+  subtoolToolIconSelected: {
+    tintColor: "orange",
   },
-  addonButton: {
-
+  subtoolButtonTitle: {
+    color: "white",
   },
-  addonToolIcon: {
-
-  },
-  addonToolIconSelected: {
-
-  },
-  addonButtonTitle: {
-
-  },
-  addonButtonTitleSelected: {
-
+  subtoolButtonTitleSelected: {
+    color: "orange",
   }
 });
