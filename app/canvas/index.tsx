@@ -17,7 +17,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function CanvasScreen() {
   const { selectedDocument, setSelectedDocument } = useDocuments();
-  const { tools, selectedTool, setSelectedTool } = useTools();
+  const { addons, tools, selectedTool, setSelectedTool, selectedAddon, setSelectedAddon } = useTools();
   const { showEllipses, toggleEllipses } = useEllipses();
   const { setSidebarOpen } = useGlobal();
 
@@ -56,6 +56,39 @@ export default function CanvasScreen() {
                       style={[
                         styles.buttonTitle,
                         selectedTool?.id === id && styles.buttonTitleSelected,
+                      ]}
+                    >
+                      {label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </BlurView>
+          </View>
+
+          {/* Bottom Left Tool Panel Addon */}
+          <View style={styles.addonPanelWrapper}>
+            <BlurView style={styles.addonPanel} intensity={90}>
+              <View style={styles.addonPanelColumn}>
+                {addons.map(({ id, label, icon }) => (
+                  <TouchableOpacity
+                    key={id}
+                    style={styles.addonButton}
+                    onPress={() => {
+                      setSelectedAddon({ id, label, icon });
+                    }}
+                  >
+                    <Image
+                      source={icon}
+                      style={[
+                        styles.addonToolIcon,
+                        selectedAddon?.id === id && styles.addonToolIconSelected,
+                      ]}
+                    />
+                    <Text
+                      style={[
+                        styles.addonButtonTitle,
+                        selectedAddon?.id === id && styles.addonButtonTitleSelected,
                       ]}
                     >
                       {label}
@@ -172,4 +205,40 @@ const styles = StyleSheet.create({
     height: 30,
     tintColor: "orange",
   },
+  addonPanelWrapper: {
+    position: "absolute",
+    bottom: 15,
+    left: 15,
+    zIndex: 10,
+    overflow: "hidden",
+    borderRadius: 15,
+  },
+  addonPanel: {
+    paddingHorizontal: 10,
+  },
+  addonPanelRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  addonPanelTitle: {
+    
+  },
+  addonPanelColumn: {
+  
+  },
+  addonButton: {
+
+  },
+  addonToolIcon: {
+
+  },
+  addonToolIconSelected: {
+
+  },
+  addonButtonTitle: {
+
+  },
+  addonButtonTitleSelected: {
+
+  }
 });
